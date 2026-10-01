@@ -1,6 +1,7 @@
 ﻿using SeaObjectApp;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 
@@ -19,8 +20,9 @@ namespace SeaObjectApp
                 Console.WriteLine("2. Загрузить данные из файла");
                 Console.WriteLine("3. Сохранить данные в файл");
                 Console.WriteLine("4. Показать текущий список объектов");
-                Console.WriteLine("5. Выйти из программы");
-                Console.Write("Выберите действие (1-5): ");
+                Console.WriteLine("5. Загрузить граф и показать список смежностей");
+                Console.WriteLine("6. Выйти из программы");
+                Console.Write("Выберите действие (1-6): ");
 
                 string choice = Console.ReadLine();
                 Console.WriteLine();
@@ -40,12 +42,45 @@ namespace SeaObjectApp
                         DisplayObjects();
                         break;
                     case "5":
+                        ProcessGraphLine(); 
+                        break;
+                    case "6":
                         Console.WriteLine("Завершение работы программы.");
                         return;
                 }
             }
         }
 
+        static void ProcessGraphLine()
+        {
+            Console.Write("Введите имя файла: ");
+            string filePath = Console.ReadLine();
+
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Ошибка: файл не найден!");
+                return;
+            }
+
+            GraphReader reader = new GraphReader();
+            string[] nodes;
+            string[][] adList;
+            reader.ReadGraph(filePath, out nodes, out adList);
+
+            Console.WriteLine("\nСписок смежностей графа:");
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                Console.Write(nodes[i] + " -> ");
+                if (adList[i].Length > 0)
+                {
+                    Console.WriteLine(string.Join(", ", adList[i]));
+                }
+                else
+                {
+                    Console.WriteLine("нет");
+                }
+            }
+        }
         static void InputFromConsole()
         {
             Console.WriteLine("Введите строку с описанием объекта:");

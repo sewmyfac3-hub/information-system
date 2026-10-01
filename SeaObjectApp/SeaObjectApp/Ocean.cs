@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace SeaObjectApp
 {
-    internal class Ocean
+    class Ocean : Sea
     {
+        public bool HasCurrents { get; set; }
+
+        public override string GetInfo()
+        {
+            return $"Океан \"{Name}\" {Depth} {Salinity} {HasCurrents}";
+        }
     }
 }
