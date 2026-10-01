@@ -1,57 +1,114 @@
-﻿using System;
+﻿using SeaObjectApp;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 
 namespace SeaObjectApp
 {
-    public class Sea
-    {
-        public string Name { get; set; }
-        public double Depth { get; set; }
-        public double Salinity { get; set; }
-
-        public override string ToString()
-        {
-            return $"Море: {Name} | Глубина: {Depth} м | Соленость: {Salinity} ‰";
-        }
-    }
-
     class Program
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("=== Программа учета морей ===");
-            Console.WriteLine("Вводите данные строк за строкой. Например, Черное море 2845,5 12,4 " +
-                "Для завершения нажмите Enter на пустой строке.\n");
+        static List<Sea> objectsList = new List<Sea>();
 
+        static void Main()
+        {
             while (true)
             {
-                Console.Write("Ввод: ");
-                string input = Console.ReadLine();
+                Console.WriteLine("\n=== МЕНЮ УПРАВЛЕНИЯ ===");
+                Console.WriteLine("1. Ввести данные с клавиатуры");
+                Console.WriteLine("2. Загрузить данные из файла");
+                Console.WriteLine("3. Сохранить данные в файл");
+                Console.WriteLine("4. Показать текущий список объектов");
+                Console.WriteLine("5. Выйти из программы");
+                Console.Write("Выберите действие (1-5): ");
 
-                // Прерываем цикл, если введена пустая строка
-                if (string.IsNullOrWhiteSpace(input))
+                string choice = Console.ReadLine();
+                Console.WriteLine();
+
+                switch (choice)
                 {
-                    break;
+                    case "1":
+                        InputFromConsole();
+                        break;
+                    case "2":
+                        LoadFromFile();
+                        break;
+                    case "3":
+                        SaveToFile();
+                        break;
+                    case "4":
+                        DisplayObjects();
+                        break;
+                    case "5":
+                        Console.WriteLine("Завершение работы программы.");
+                        return;
                 }
-
-                // Извлекаем название между первыми и последними кавычками
-                int firstQuote = input.IndexOf('"');
-                int lastQuote = input.LastIndexOf('"');
-                string name = input.Substring(firstQuote + 1, lastQuote - firstQuote - 1);
-
-                // Извлекаем оставшиеся числа после кавычек
-                string rest = input.Substring(lastQuote + 1).Trim();
-                string[] numbers = rest.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                // Создаем объект без проверок
-                Sea sea = new Sea
-                {
-                    Name = name,
-                    Depth = double.Parse(numbers[0]),
-                    Salinity = double.Parse(numbers[1])
-                };
-
-                Console.WriteLine($"Создан объект -> {sea}\n");
             }
+        }
+
+        static void InputFromConsole()
+        {
+            Console.WriteLine("Введите строку с описанием объекта:");
+            string input = Console.ReadLine();
+            Sea obj = ParseString(input);
+            objectsList.Add(obj);
+            Console.WriteLine("Объект успешно добавлен!");
+        }
+
+        static void LoadFromFile()
+        {
+            Console.Write("Введите имя файла для чтения: ");
+            string filePath = Console.ReadLine();
+
+            string[] lines = File.ReadAllLines(filePath);
+
+            foreach (string line in lines)
+            {
+                Sea obj = ParseString(line);
+                objectsList.Add(obj);
+            }
+
+            Console.WriteLine($"Загрузка завершена. Добавлено объектов: {lines.Length}");
+        }
+
+        static void SaveToFile()
+        {
+            Console.Write("Введите имя файла для сохранения: ");
+            string filePath = Console.ReadLine();
+
+            List<string> linesToSave = new List<string>();
+            foreach (Sea obj in objectsList)
+            {
+                linesToSave.Add(obj.GetInfo());
+            }
+
+            File.WriteAllLines(filePath, linesToSave);
+            Console.WriteLine($"Данные успешно сохранены в файл \"{filePath}\"!");
+        }
+
+        static void DisplayObjects()
+        {
+            Console.WriteLine("Текущий список объектов:");
+            for (int i = 0; i < objectsList.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {objectsList[i].GetInfo()}");
+            }
+        }
+
+        static Sea ParseString(string text)
+        {
+            string[] parts = text.Split('"');
+            string name = parts[1];
+            string[] nums = parts[2].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            CultureInfo ci = CultureInfo.InvariantCulture;
+
+            return new Sea
+            {
+                Name = name,
+                Depth = Convert.ToDouble(nums[0], ci),
+                Salinity = Convert.ToDouble(nums[1], ci)
+            };
         }
     }
 }
